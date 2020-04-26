@@ -265,6 +265,25 @@ def build_navbar(to_include, docs_dir='../Documentation'):
     output(navbar, 'navbar,js', os.path.join(docs_dir, 'templates'))
 
 
+def build_readme(pages, markdown=None):
+    """
+    Function to build a top level readme.html file. This will link to other
+    pages. A user should use this to document their project as a whole.
+    
+    Parameters
+    ----------
+    pages : list
+        A list of Python scripts turned pages. Top-level pages will be linked
+        to along with their descriptions.
+    markdown : str, optional
+        The local/global path to the project readme written in markdown. This
+        will be converted into HTML and merged with the pages html section if
+        given. The default is None
+    """
+    # !!! TODO
+    pass
+
+
 def build_page(module, devs, desc, classes="", funcs="", submodule=""):
     """
     Function for building HTML docs using extracted data.
@@ -493,13 +512,12 @@ def bootstrap_download(docs_dir="../Documentation"):
         }
 
     # get source address
-    src = "https://github.com/jamescalam/autodocs/Documentation/templates"
+    src = ("https://raw.githubusercontent.com/"
+           "jamescalam/autodocs/master/documentation/templates")
 
     for part in components:
-        # get the web address for each part
-        part_src = os.path.join(src, components[part])
         # download the code and store in components dictionary
-        code = requests.get(part_src).text
+        code = requests.get(f"{src}/{components[part]}").text
         # now save the component to file (in the documentation templates dir)
         output(code, components[part],
                path=os.path.join(docs_dir, 'templates'))
@@ -529,20 +547,23 @@ class DocsBuilder:
         None.
         """
 
-        # check if bootstrap css exists
-        if not os.path.exists(os.path.join(docs_dir, '/templates/')):
-            # if it does not exist, create one
-            os.mkdir(docs_dir)
-            print(f"Added documentation directory:\\n'{docs_dir}'.")
-        # check if the templates directory exists
-        if not os.path.isdir(os.path.join(docs_dir, '/templates')):
-            # if does not exist, create it
-            os.mkdir(os.path.join(docs_dir, '/templates'))
-            print("Added templates directory:\n"
-                  f"'{os.path.join(docs_dir, '/templates')}'.")
+        # create list of intended bootstrap file locations
+        bootstraps = [
+                os.path.join(docs_dir, 'templates/bootstrap.bundle.min.js'),
+                os.path.join(docs_dir, 'templates/bootstrap.min.css'),
+                os.path.join(docs_dir, 'templates/jquery.min.js')
+            ]
+        # check if any of required bootstrap files do not exist
+        if not any([os.path.exists(loc) for loc in bootstraps]):
+            # if any do not exist, we download all
+            print("Not all required Bootstrap files found. "
+                  "They will be downloaded to "
+                  f"'{os.path.join(docs_dir, 'templates')}'.")
+            # download bootstrap files
+            bootstrap_download(docs_dir)
             
         # compiled regex for finding import libraries
-        self.libs_re = re.compile(r"")
+        #self.libs_re = re.compile(r"")
         # create compiled regex for finding classes and all that they contain (final character must be removed though)
         self.class_re = re.compile(r"(?sm)class [\w\d_]+:.*(^\n\w)")
         # if we don't find any with above, we can try with this for class at end of file
@@ -567,10 +588,10 @@ class DocsBuilder:
         self.module, self.devs, self.desc = extract_module(code)
 
         # !!! TODO
-        self.libs = self.libs_re.findall(code)  # find all imported libraries
+        #self.libs = self.libs_re.findall(code)  # find all imported libraries
 
         # !!! TODO
-        self.vars = self.vars_re.findall(code)  # find all global libraries
+        #self.vars = self.vars_re.findall(code)  # find all global libraries
 
         # initialise classes dictionary
         self.classes = {}
@@ -642,7 +663,7 @@ class DocsBuilder:
         # build top-level page
         pages[filename] = \
             build_page(self.module, self.devs, self.desc, self.classes,
-                       self.funcs, self.vars)
+                       self.funcs)
         # iterate through classes (if any) and build page for each
         if len(self.classes) > 0:
             for c in self.classes:
@@ -655,4 +676,8 @@ class DocsBuilder:
 
         # finally save all to file
         for page in pages:
-            output(pages[page], page, path=path, overwrite=overwrite)
+            output(pages[page], page, path=path)
+
+        # !!! TODO add top-level readme.html
+        #readme = html_readme(pages)
+        #output(readme, 'readme.html', path='../')
