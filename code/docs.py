@@ -236,7 +236,7 @@ def functions_html(funcs):
     return html
 
 
-def build_navbar(to_include, docs_dir='./Documentation'):
+def build_navbar(to_include, docs_dir='../Documentation'):
     """
     Function for building a navigation bar 'navbar.js'. This will be saved to
     the templates folder within the docs directory.
@@ -262,7 +262,7 @@ def build_navbar(to_include, docs_dir='./Documentation'):
     navbar = ""
 
     # now save to templates within the docs directory
-    output(navbar, 'navbar,js', os.path.join(docs_dir, '/templates'))
+    output(navbar, 'navbar,js', os.path.join(docs_dir, 'templates'))
 
 
 def build_page(module, devs, desc, classes="", funcs="", submodule=""):
@@ -420,7 +420,7 @@ def build_page(module, devs, desc, classes="", funcs="", submodule=""):
     return html
 
 
-def output(code, filename, path="./Documentation", overwrite=False):
+def output(code, filename, path="../Documentation"):
     """
     Function to control saving of HTML files.
 
@@ -441,18 +441,20 @@ def output(code, filename, path="./Documentation", overwrite=False):
     -------
     None.
     """
+    
+    file_types = ['.html', '.css', '.js']  # accepted file extensions
 
-    # check if the filename given already has an extension
-    if any(['.html', '.css', '.js']) not in filename:
-        # if no extension given, we assume it is an html file
+    # check if the filename given has an accepted extension from file_types
+    if not any([ext in filename for ext in file_types]):
+        # if none found, we assume it is an html file
         filename += '.html'
 
     # if output directory does not already exist, make it
     if not os.path.isdir(path):
         os.makedirs(path)
 
-    # check if file exists and warn user if so (unless overwrite=True)
-    if os.path.exists(os.path.join(path, filename)) or not overwrite:
+    # check if file exists and warn user if so
+    if os.path.exists(os.path.join(path, filename)):
         overwrite = input(f"Warning: '{filename}' already exists, do you "
                            "want to overwrite? (Y/N)\n>>> ")
         if overwrite.lower()[0] == 'y':
@@ -464,10 +466,11 @@ def output(code, filename, path="./Documentation", overwrite=False):
     # save code to file
     with open(os.path.join(path, filename), 'w') as fp:
         fp.write(code)
-        print(f"{filename.split('.')[-1].upper()} file saved to '{fp}'.")
+        print(f"{filename.split('.')[-1].upper()} file saved to "
+              f"'{os.path.join(path, filename)}'.")
 
 
-def bootstrap_download(docs_dir):
+def bootstrap_download(docs_dir="../Documentation"):
     """
     Function used for downloading Bootstrap files. These are downloaded from
     this projects GitHub repo.
@@ -494,12 +497,12 @@ def bootstrap_download(docs_dir):
 
     for part in components:
         # get the web address for each part
-        part_src = os.path.join(src, components[part][0])
+        part_src = os.path.join(src, components[part])
         # download the code and store in components dictionary
         code = requests.get(part_src).text
         # now save the component to file (in the documentation templates dir)
-        output(code, components[part][0],
-               path=os.path.join(docs_dir, '/templates'))
+        output(code, components[part],
+               path=os.path.join(docs_dir, 'templates'))
 
 
 class DocsBuilder:
@@ -509,7 +512,7 @@ class DocsBuilder:
     Function docstrings must also follow NumPy/SciPy docstring formatting
     conventions.
     """
-    def __init__(self, docs_dir='./Documentation', offline=False):
+    def __init__(self, docs_dir='../Documentation', offline=False):
         """
         Initialise DocsBuilder class. Checks the given documentation directory
         for Bootstrap templates, if not found will download from <TK webpage>
@@ -611,7 +614,7 @@ class DocsBuilder:
         #code = self.funcs_re.sub("", code)  # remove from code
 
 
-    def build(self, path="./Documentation", overwrite=False):
+    def build(self, path="../Documentation", overwrite=False):
         """
         Function for building HTML docs using extracted data.
 
