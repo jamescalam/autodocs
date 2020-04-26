@@ -443,7 +443,7 @@ def output(code, filename, path="./Documentation", overwrite=False):
     """
 
     # check if the filename given already has an extension
-    if any(['.html', '.js']) not in filename:
+    if any(['.html', '.css', '.js']) not in filename:
         # if no extension given, we assume it is an html file
         filename += '.html'
 
