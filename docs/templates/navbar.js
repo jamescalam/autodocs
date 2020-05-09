@@ -9,7 +9,7 @@ document.write('\
     <div class="collapse navbar-collapse" id="navbarResponsive">\
       <ul class="navbar-nav ml-auto">\
         <li class="nav-item">\
-          <a class="nav-link" href="https://jamescalam.github.io/docs/docs.html">Docs\
+          <a class="nav-link" href="https://jamescalam.github.io/autodocs/docs/docs.html">Docs\
           </a>\
         </li>\
         <li class="nav-item">\
