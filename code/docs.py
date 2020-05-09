@@ -33,21 +33,26 @@ def extract_params(text):
         Dictionary containing all parameters found and their descriptions,
         datatypes, and whether they are optional or not.
     """
-    # this will match a parameter name, type, description (and name of following param)
-    param_re = re.compile(r"(?sm)\w+ : [^:]+")
+    # this will match a parameter name, type, and description
+    param_re = re.compile(r"(?s)\w+ : .*?(?=\w+ :)")
+    # the above will not find the final parameter, this will
+    param_re2 = re.compile(r"(?s)\w+ : .*")
     # initialise parameter dictionary
     params = {}
     while True:
         new_param = param_re.search(text)
         #print(new_param)
         if new_param is None:
-            # if no parameters have been found, break from loop
-            break
+            # if no parameters have been found, try with modified regex
+            new_param = param_re2.search(text)
+            if new_param is None:
+                # if we still cannot find any new parameters, break
+                break
         # extract text
         new_param = new_param.group()
 
-        # split by newline character and remove final line (the name of the following param)
-        new_param = new_param.split('\n')[:-1]
+        # split by newline character
+        new_param = new_param.split('\n')
 
         # first line is param name and description, get both
         name, dtype = new_param[0].split(":")
@@ -93,7 +98,7 @@ def extract_functions(code):
     """
     funcs = {}
     # create compiled regex for finding functions and their following docstrings
-    func_re = re.compile(r"(?m)def [\w\d_]+\([\w\d\n\/_=,.'\" ]+\):\s+\"{3}[^#]+\"{3}")
+    func_re = re.compile(r"(?s)def [\w\d_]+\(.*?\):\s+\"{3}.*?\"{3}")
 
     # build list of functions
     func_list = func_re.findall(code)
@@ -236,7 +241,7 @@ def functions_html(funcs):
     return html
 
 
-def build_navbar(to_include, docs_dir='../Documentation'):
+def build_navbar(to_include, docs_dir='docs'):
     """
     Function for building a navigation bar 'navbar.js'. This will be saved to
     the templates folder within the docs directory.
@@ -262,7 +267,7 @@ def build_navbar(to_include, docs_dir='../Documentation'):
     navbar = ""
 
     # now save to templates within the docs directory
-    output(navbar, 'navbar,js', os.path.join(docs_dir, 'templates'))
+    output(navbar, 'navbar.js', os.path.join(docs_dir, 'templates'))
 
 
 def build_readme(pages, markdown=None):
@@ -299,10 +304,12 @@ def build_page(module, devs, desc, classes="", funcs="", submodule=""):
     classes : dict, optional
         Dictionary containing classes and their description, code, functions,
         and variables. The default is "".
-    funcs = dict, optional
+    funcs : dict, optional
         Dictionary containing functions and their descriptions and parameters.
-    submodule = str, optional
+        The default is "".
+    submodule : str, optional
         String containing the submodule name, if within a submodule, eg class.
+        The default is "".
 
     Returns
     -------
@@ -322,10 +329,10 @@ def build_page(module, devs, desc, classes="", funcs="", submodule=""):
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="{fullpath[-1]} documentation">
-<meta name="author" content="{devs}">
+<meta name="description" content="{fullpath[-1]} docs">
+<meta name="author" content="James Briggs">
 
-<title>{fullpath[-1]} Documentation</title>
+<title>{fullpath[-1]} docs</title>
 
 <link href="templates/bootstrap.min.css" rel="stylesheet">
 
@@ -351,18 +358,22 @@ def build_page(module, devs, desc, classes="", funcs="", submodule=""):
     <!-- Breadcrumb Navigation -->
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
-        <li class="breadcrumb-item active"><a href="../readme.html">Documentation</a></li>
+        <li class="breadcrumb-item active"><a href="../readme.html">Readme</a></li>
     """
-    for i, part in enumerate(fullpath):
+    for i, layer in enumerate(fullpath):
         if i+1 != len(fullpath):
+            path = fullpath[:i+1]  # get all items leading to this point
+            # format each part to not contain capitals or spaces for file links
+            path = [part.lower().replace(" ", "_") for part in path]
+            path = ".".join(path) + ".html"  # create the filename
             # add in a hypterlink
             html += f"""
-        <li class="breadcrumb-item active"><a href="{part.lower().replace(" ", "_")}.html">{part}</a></li>
+        <li class="breadcrumb-item active"><a href="{path}">{layer}</a></li>
             """
         else:
             # otherwise, no hyperlink as is current page
             html += f"""
-        <li class="breadcrumb-item" aria-current="page">{part}</li>
+        <li class="breadcrumb-item" aria-current="page">{layer}</li>
             """
     html += """
       </ol>
@@ -439,7 +450,7 @@ def build_page(module, devs, desc, classes="", funcs="", submodule=""):
     return html
 
 
-def output(code, filename, path="../Documentation"):
+def output(code, filename, path="docs"):
     """
     Function to control saving of HTML files.
 
@@ -448,7 +459,7 @@ def output(code, filename, path="../Documentation"):
     path : str, optional
         String containing the local/global filepath to the Documentation
         directory. The HTML files will be saved here.
-        The default is './Documentation'.
+        The default is 'docs'.
     overwrite : Boolean, optional
         True/False determining whether pre-existing files will be
         overwritten without warning. If False then overwrite will still be
@@ -489,7 +500,7 @@ def output(code, filename, path="../Documentation"):
               f"'{os.path.join(path, filename)}'.")
 
 
-def bootstrap_download(docs_dir="../Documentation"):
+def bootstrap_download(docs_dir="docs"):
     """
     Function used for downloading Bootstrap files. These are downloaded from
     this projects GitHub repo.
@@ -525,17 +536,15 @@ def bootstrap_download(docs_dir="../Documentation"):
 
 class DocsBuilder:
     """
-    Class used for automatically generating HTML-based documentation from Python
-    code. Note that the Python code must be written correctly and commented.
-    Function docstrings must also follow NumPy/SciPy docstring formatting
-    conventions.
+    Class used for automatically generating HTML-based documentation from
+    Python code. Note that function docstrings must also follow NumPy/SciPy
+    docstring formatting conventions.
     """
-    def __init__(self, docs_dir='../Documentation', offline=False):
+    def __init__(self, docs_dir='docs', offline=False):
         """
         Initialise DocsBuilder class. Checks the given documentation directory
-        for Bootstrap templates, if not found will download from <TK webpage>
-        here. Also compiles useful Regular Expressions (TK add class finder to
-        it's own function).
+        for Bootstrap templates, if not found will download from GitHub repo.
+        Also compiles useful Regular Expressions.
 
         Parameters
         ----------
@@ -565,7 +574,7 @@ class DocsBuilder:
         # compiled regex for finding import libraries
         #self.libs_re = re.compile(r"")
         # create compiled regex for finding classes and all that they contain (final character must be removed though)
-        self.class_re = re.compile(r"(?sm)class [\w\d_]+:.*(^\n\w)")
+        self.class_re = re.compile(r"(?sm)class [\w\d_]+:.*(^.)")
         # if we don't find any with above, we can try with this for class at end of file
         self.class_end_re = re.compile(r"(?sm)class [\w\d_]+:.*")
 
@@ -614,11 +623,11 @@ class DocsBuilder:
             desc = ""
 
             # check class has DESCRIPTION
-            if re.compile(r"class .*:[\n\s]+\"{3}[\w\d\s_=,.:{}'<>\[\]-]+\"{3}").search(new_class.group()):
+            if re.compile(r"(?s)class [\w\d_]+:[\n\s]+\"{3}.*?\"{3}").search(new_class.group()):
                 # if so, get class description
-                desc = re.compile(r"class .*:[\n\s]+\"{3}[\w\d\s_=,.:{}'<>\[\]-]+\"{3}").search(new_class.group()).group()
+                desc = re.compile(r"(?s)class [\w\d_]+:[\n\s]+\"{3}.*?\"{3}").search(new_class.group()).group()
                 # remove class definition and triple quotes from desc
-                desc = re.sub(r"class .*:", "", desc).replace('"""', "")
+                desc = re.sub(r"class [\w\d_]+:", "", desc).replace('"""', "")
                 # remove excessive whitespace
                 desc = re.sub(r"\s+", " ", desc)
 
@@ -635,7 +644,7 @@ class DocsBuilder:
         #code = self.funcs_re.sub("", code)  # remove from code
 
 
-    def build(self, path="../Documentation", overwrite=False):
+    def build(self, path="docs", overwrite=False):
         """
         Function for building HTML docs using extracted data.
 
@@ -644,7 +653,7 @@ class DocsBuilder:
         path : str, optional
             String containing the local/global filepath to the Documentation
             directory. The HTML files will be saved here.
-            The default is './Documentation'.
+            The default is 'docs'.
         overwrite : Boolean, optional
             True/False determining whether pre-existing files will be
             overwritten without warning. If False then overwrite will still be

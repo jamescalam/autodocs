@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="description" content="DocsBuilder docs">
+<meta name="author" content="James Briggs">
+
+<title>DocsBuilder docs</title>
+
+<link href="templates/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<!-- Navigation -->
+<script src="templates/navbar.js"></script>
+
+<!-- Page Content -->
+<div class="container">
+<div class="row">
+  <div class="col-lg-12 text-left">
+
+    <h1 class="mt-5">DocsBuilder</h1>
+    <p class="lead">
+       Class used for automatically generating HTML-based documentation from Python code. Note that function docstrings must also follow NumPy/SciPy docstring formatting conventions. 
+    </p>
+
+    <br>
+
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item active"><a href="../readme.html">Readme</a></li>
+    
+        <li class="breadcrumb-item active"><a href="docs.html">Docs</a></li>
+            
+        <li class="breadcrumb-item" aria-current="page">DocsBuilder</li>
+            
+      </ol>
+    </nav>
+
+    <br>
+
+    
+        <h2>Functions</h2>
+        <br>
+        <ul>
+    
+        <li class="list-group-item" id="func___init__">
+          <h4>__init__</h4>
+          <kbd>__init__(docs_dir)</kbd><br><br>
+          <p>
+            Initialise DocsBuilder class. Checks the given documentation directory for Bootstrap templates, if not found will download from GitHub repo. Also compiles useful Regular Expressions.
+          </p>
+        
+          <!-- Parameters table for __init__ -->
+          <table class="table table-hover">
+            <tbody>
+            
+              <tr>
+                <th scope="row">docs_dir</th>
+                <td>
+                  The local/global path to the documentation directory.
+                </td>
+              </tr>
+                
+            </tbody>
+          </table>
+            
+        </li>
+        <br>
+        
+        <li class="list-group-item" id="func_extract">
+          <h4>extract</h4>
+          <kbd>extract(code)</kbd><br><br>
+          <p>
+            Function for extracting imported libraries/modules, global variables, functions and classes.
+          </p>
+        
+          <!-- Parameters table for extract -->
+          <table class="table table-hover">
+            <tbody>
+            
+              <tr>
+                <th scope="row">code</th>
+                <td>
+                  String containing the Python code to be documented.
+                </td>
+              </tr>
+                
+            </tbody>
+          </table>
+            
+        </li>
+        <br>
+        
+        <li class="list-group-item" id="func_build">
+          <h4>build</h4>
+          <kbd>build(path, overwrite)</kbd><br><br>
+          <p>
+            Function for building HTML docs using extracted data.
+          </p>
+        
+          <!-- Parameters table for build -->
+          <table class="table table-hover">
+            <tbody>
+            
+              <tr>
+                <th scope="row"><em>path*</em></th>
+                <td>
+                  String containing the local/global filepath to the Documentation directory. The HTML files will be saved here. The default is 'docs'.
+                </td>
+              </tr>
+                
+              <tr>
+                <th scope="row"><em>overwrite*</em></th>
+                <td>
+                  True/False determining whether pre-existing files will be overwritten without warning. If False then overwrite will still be possible but a warning will appear if there are any pre-existing files, which will confirm the user's intention in overwritting or otherwise.
+                </td>
+              </tr>
+                
+            </tbody>
+          </table>
+            
+        </li>
+        <br>
+        
+        </ul>
+    
+  </div>
+</div>
+</div>
+<br>
+
+<!-- Bootstrap core JavaScript -->
+<script src="templates/jquery.min.js"></script>
+<script src="templates/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>
+    
